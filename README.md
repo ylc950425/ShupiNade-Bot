@@ -1,11 +1,10 @@
-# Discord Bot — su / kanade
+# ShupiNade Discord Bot
 
-為 VTuber 粉絲社群打造的 Discord Bot，同一份程式碼供兩個伺服器的 Bot 使用：
+為 VTuber 粉絲社群打造的 Discord Bot
 
-| Bot | VTuber |
-|-----|--------|
-| **su** | 水宮枢 (Mizumiya Su) |
-| **kanade** | 音乃瀬奏 (Kanade Izuru) |
+使用此程式碼運行中的 Bot：
+- 奏的樂音工坊 — 音乃瀬奏
+- 枢的天才充電站 — 水宮枢
 
 ---
 
