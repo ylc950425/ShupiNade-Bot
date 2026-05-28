@@ -274,7 +274,7 @@ class slash(MyCog):
     async def connect_vc(self, interaction: Interaction, 語音頻道: discord.VoiceChannel):
         try:
             vc_channel = 語音頻道
-            await vc_channel.connect(reconnect=False)
+            await vc_channel.connect(self_deaf=True)
             await interaction.response.send_message("已連接語音頻道", ephemeral=True)
 
         except asyncio.TimeoutError:
