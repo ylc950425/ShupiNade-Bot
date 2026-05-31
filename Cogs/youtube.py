@@ -703,14 +703,17 @@ class youtube(MyCog):
                 id_string = ",".join(video['id'] for video in youtube_data['views_check'][list_num * 50 : list_num * 50 + 50])
 
                 video_data_list = self.get_video_data(id_string)
+                
+                for i, old_video_data in enumerate(youtube_data['views_check'][list_num * 50 : list_num * 50 + 50]):
 
-                for count, (new_video_data, old_video_data) in enumerate(zip(video_data_list, youtube_data['views_check'][list_num * 50 :])):
+                    if not (new_video_data := next((v for v in video_data_list if v['id'] == old_video_data['id']), None)):
+                        continue
+
                     old_view = old_video_data['views']
-                    new_view = int(new_video_data['statistics']['viewCount'])
-                    new_view = int(new_view / 100000) * 100000
+                    new_view = int(int(new_video_data['statistics']['viewCount']) / 100000) * 100000
 
                     if new_view > old_view:
-                        youtube_data['views_check'][count + list_num * 50]['views'] = new_view
+                        youtube_data['views_check'][i + list_num * 50]['views'] = new_view
                         youtube_data_dirty = True
 
                         embed = self.log.video_base(new_video_data)
