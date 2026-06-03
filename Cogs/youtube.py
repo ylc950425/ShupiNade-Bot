@@ -989,20 +989,21 @@ class youtube(MyCog):
         try:
             # 如果有直播台存在且為頻繁檢查狀態
             if youtube_data['streams']:
-                for count, stream in enumerate(youtube_data['streams']):             
+
+                for count, stream in enumerate(youtube_data['streams']):
                     if stream['start_check']:
-
                         video_id = stream['id']
-                        video_data = self.get_video_data(video_id)[0]
 
-                        if video_data['snippet']['liveBroadcastContent'] == "live":
+                        # 如果影片有成功抓取到影片資料
+                        if video_data := self.get_video_data(video_id)[0]:
+                            if video_data['snippet']['liveBroadcastContent'] == "live":
 
-                            await self.log.stream_start(video_data)
-                            func.time_print(f'直播開始 https://youtu.be/{video_id}')
+                                await self.log.stream_start(video_data)
+                                func.time_print(f'直播開始 https://youtu.be/{video_id}')
 
-                            youtube_data['streams'][count]['start_check'] = False
-                            youtube_data['streams'][count]['live'] = True
-                            func.write_json("youtube_data", youtube_data)
+                                youtube_data['streams'][count]['start_check'] = False
+                                youtube_data['streams'][count]['live'] = True
+                                func.write_json("youtube_data", youtube_data)
 
         except Exception as e:
             await self.report_error(__file__, f"{self.__class__.__name__}.seconds_check", e)
