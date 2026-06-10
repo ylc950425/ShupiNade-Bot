@@ -6,6 +6,7 @@ from Define.CommandsGroup import SettingsCommandsGroup, MessageCommandsGroup, Fu
 import Define.Functions as func
 import emoji
 import asyncio
+import requests
 
 
 settings = func.read_json("settings")
@@ -172,19 +173,58 @@ class ReactionRoleRemoveModal(ui.Modal):
 class slash(MyCog):
     def __init__(self, bot: MyBot):
         super().__init__(bot)
-        # cmd1 = app_commands.ContextMenu(name="忘記切輸入法轉換器", callback=self.to_zhuyin)
-        # self.bot.tree.add_command(cmd1)
 
-    # def cog_unload(self):
-    #     self.bot.tree.remove_command(self.test.name, type=discord.AppCommandType.message)
+    async def cog_load(self):
+        self.bot.tree.add_command(app_commands.ContextMenu(name="忘記切輸入法轉換器", callback=self.zhuyin))
 
-    # async def to_zhuyin(self, interaction: discord.Interaction, message: discord.Message):
-    #     content = message.content.lower()
-    #     zhuyin = "ㄅㄆㄇㄈㄉㄊㄋㄌㄍㄎㄏㄐㄑㄒㄓㄔㄕㄖㄗㄘㄙㄧㄨㄩㄚㄛㄜㄝㄞㄟㄠㄡㄢㄣㄤㄥㄦ ˊˇˋ˙"
-    #     not_zhuyin = "1qaz2wsxedcrfv5tgbyhnujm8ik,9ol.0p;/- 6347"
-    #     for count, nz in enumerate(not_zhuyin):
-    #         content = content.replace(nz, zhuyin[count])
-    #     await interaction.response.send_message(content)
+    async def cog_unload(self):
+        self.bot.tree.remove_command("忘記切輸入法轉換器", type=discord.AppCommandType.message)
+
+    async def zhuyin(self, interaction: discord.Interaction, message: discord.Message):
+        try:
+            if not (content := message.content):
+                return await interaction.response.send_message("無訊息內容", ephemeral=True)
+
+            await interaction.response.defer()
+
+            # 替換字元
+            replacement = [
+                (" ", "="),
+                (",", "%2C")
+            ]
+            for o, n in replacement:
+                content = content.replace(o, n)
+            
+            # 篩選真正的空格
+            content = list(content)
+            for i in range(len(content)-1, 0, -1):
+                if content[i] == "=" and content[i-1] in {"3", "4", "6", "7", "="}:
+                    content[i] = " "
+            content = "".join(content)
+
+            # 一律在字尾加入空格
+            content += "="
+
+            # 使用 google input tools api
+            response = requests.get(
+                "https://inputtools.google.com/request",
+                {
+                    "text": content,
+                    "itc": "zh-hant-t-i0-und"
+                }
+            )
+
+            data = response.json()
+
+            if data[0] == "SUCCESS":
+                # 如果 list 為空值，印出零寬空格
+                await interaction.followup.send(next(iter(data[1][0][1]), "​"))
+            else:
+                return await interaction.followup.send("轉換失敗", ephemeral=True)
+
+        except Exception as e:
+            await self.report_error(__file__, f"{self.__class__.__name__}.zhuyin", e)
+
 
     settingsCommandsGroup = SettingsCommandsGroup()
     messageCommandsGroup = MessageCommandsGroup()
