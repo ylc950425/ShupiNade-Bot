@@ -32,87 +32,170 @@ PLAYLIST_ID = youtube_data['playlist_id']
 CHANNEL_ID = youtube_data['channel_id']
 
 
-hololive_channel_id = {
-    #'UC97104KkGIEPvOYABW-3I0Q', #test_YLC
-    #'UCkr7uCq7BZO2perY5PqX3lw', #test_olea
-    'UCp6993wxpyDPHUpavwDFqgg', #sora
-    'UCDqI2jOz0weumE8s7paEk6g', #roboco
-    'UC5CwaMl1eIgY8h02uZw7u8A', #suisei
-    'UC-hM6YJuNYVAmUWxeIr9FeA', #miko
-    'UC0TXe_LYZ4scaW2XMyi5_kw', #azki
-    'UC1CfXB_kRs3C-zaeTG3oGyg', #haachama
-    'UCD8HOxPs4Xvsm8H0ZxXGiBw', #mel
-    'UCdn5BQ06XqgXoAxIhbqw5Rg', #fubuki
-    'UCFTLzh12_nrtzqBPsTCqenA', #akiroze
-    'UCQ0UDLQCjY0rmuxCDE38FGg', #matsuri
-    'UC1opHUrw8rvnsadT-iGp7Cg', #aqua
-    'UC1suqwovbL1kzsoaZgFZLKg', #choco
-    'UC7fk0CB07ly8oSl0aqKkqFg', #ayame
-    'UCvzGlP9oQwU--Y0r9id_jnA', #subaru
-    'UCXTpFs_3PqI41qX2d9tL2Rw', #shion
-    'UChAnqc_AY5_I3Px5dig3X1Q', #korone
-    'UCp-5t9SrOQwXMU7iIjQfARg', #mio
-    'UCvaTdHTWBGv3MKj3KVqJVCw', #okayu
-    'UC1DCedRgGHBdm81E1llLhOQ', #pekora
-    'UCCzUftO8KOVkV4wQG1vkUvg', #marine
-    'UCdyqAaZDKHXg4Ahi7VENThQ', #noel
-    'UCvInZx9h3jC2JzsIzoOebWg', #flare
-    'UCl_gCybOJRIgOXw6Qb4qJzQ', #rushia
-    'UC1uv2Oq6kNxgATlCiez59hw', #towa
-    'UCa9Y57gfeY0Zro_noHRVrnw', #luna
-    'UCqm3BQLlJfvkTsX_hvm0UmA', #watame
-    'UCZlDXzGoo7d44bwdNObFacg', #kanata
-    'UCS9uQI-jC3DE0L4IpXyvr6w', #coco
-    'UCAWSyEs_Io8MtpY3m-zqILA', #nene
-    'UCFKOVgVbGmX65RxO3EtH3iw', #lamy
-    'UCK9V2B22uJYu3N7eR_BT9QA', #polka
-    'UCUKD-uaobj9jiqB-VXt71mA', #botan
-    'UCgZuwn-O7Szh9cAgHqJ6vjw', #aloe
-    'UC6eWCld0KwmyHFbAqK3V-Rw', #koyori
-    'UCENwRMx5Yh42zWpzURebzTw', #laplus
-    'UCIBY1ollUsauvVi4hW4cumw', #chloe
-    'UCs9_O1tRPMQTHQ-N_L6FU2g', #lui
-    'UC_vMYWcDjmfdpH6r4TTn1MQ', #iroha
-    'UCHsx4Hqa-1ORjQTh9TYDhww', #kiara
-    'UCL_qhgtOy0dy1Agp8vkySQg', #calli
-    'UCMwGHR0BTZuLsmjY_NT5Pwg', #ina
-    'UCoSrY_IQQVpmIRZ9Xf-y93g', #gura
-    'UCyl1z3jo3XHR1riLFKG5UAg', #ame
-    'UC8rcEBzJSleTkf_-agPM20g', #irys
-    'UC3n5uGu18FoCy23ggWWp8tA', #mumei
-    'UCgmPnx-EEeOrZSg5Tiw7ZRQ', #bae
-    'UCmbs8T6MWqUHP1tIQvSgKrg', #kronii
-    'UCO_aKKYxn4tvrqPjcTzZ6EQ', #fauna
-    'UCsUj0dszADCGbF3gNrQEuSQ', #sana
-    'UC9p_lqQ0FEDz327Vgf5JwqA', #biboo
-    'UCgnfPPb9JI3e9A4cXHnWbyg', #shiori
-    'UC_sFNM0z0MWm9A6WlKPuMMg', #nerissa
-    'UCt9H_RpQzhxzlyBxFqrdHqA', #fuwamoco
-    'UCDHABijvPBnJm7F-KlNME3w', #gigi
-    'UCl69AEx4MdqMZH7Jtsm7Tig', #raora
-    'UCvN5h1ShZtc7nly3pezRayg', #cecilia
-    'UCW5uhrG1eCBYditmhL0Ykjw', #liz
-    'UCAoy6rzhSf4ydcYjJw3WoVg', #iofi
-    'UCOyYb1c43VlX9rc_lT6NKQw', #risu
-    'UCP0BspO_AMEe3aQqqpo89Dg', #moona
-    'UC727SQYUvx5pDDGQpTICNWg', #anya
-    'UChgTyjG-pdNvxxhdsXfHQ5Q', #reine
-    'UCYz_5n-uDuChHtLo7My1HnQ', #ollie
-    'UCjLEmnpCNeisMxy134KPwWw', #kobo
-    'UCTvHWSfBZgtxE4sILOaurIQ', #zeta
-    'UCZLZ8Jjx_RN2CXloOmgTHVg', #kaela
-    'UC1iA6_NT4mtAcIII6ygrvCw', #hajime
-    'UCdXAk5MpyLD8594lm_OvtGQ', #raden
-    'UCMGfV7TVTmHhEErVJg1oHBQ', #ao
-    'UCtyWhCj3AqKh2dXctLkDtng', #ririka
-    'UCWQtYtq9EOB4-I5P-3fh8lA', #kanade
-    'UC9LSiN9hXI55svYEBrrK-tw', #riona
-    'UCGzTVXqMQHa4AgJVJIVvtDQ', #vivi
-    'UCjk2nKmHzgH5Xy-C5qYRd5A', #su
-    'UCKMWFR6lAstLa7Vbf5dH7ig', #chihaya
-    'UCuI_opAVX6qbxZY-a-AxFuQ', #niko
+channel_ids = {
+    # 測試
+    # "UC97104KkGIEPvOYABW-3I0Q", # test_YLC
+    # "UCkr7uCq7BZO2perY5PqX3lw", # test_olea
 
-    'UCt30jJgChL8qeT9VPadidSw' #ui
+    # hololive
+    "UCp6993wxpyDPHUpavwDFqgg", # ときのそら
+    "UCDqI2jOz0weumE8s7paEk6g", # ロボ子さん
+    "UC5CwaMl1eIgY8h02uZw7u8A", # 星街すいせい
+    "UC-hM6YJuNYVAmUWxeIr9FeA", # さくらみこ
+    "UC0TXe_LYZ4scaW2XMyi5_kw", # AZKi
+    "UC1CfXB_kRs3C-zaeTG3oGyg", # 赤井はあと
+    "UCD8HOxPs4Xvsm8H0ZxXGiBw", # 夜空メル
+    "UCdn5BQ06XqgXoAxIhbqw5Rg", # 白上フブキ
+    "UCFTLzh12_nrtzqBPsTCqenA", # アキ・ローゼンタール
+    "UCQ0UDLQCjY0rmuxCDE38FGg", # 夏色まつり
+    "UC1opHUrw8rvnsadT-iGp7Cg", # 湊あくあ
+    "UC1suqwovbL1kzsoaZgFZLKg", # 癒月ちょこ
+    "UC7fk0CB07ly8oSl0aqKkqFg", # 百鬼あやめ
+    "UCvzGlP9oQwU--Y0r9id_jnA", # 大空スバル
+    "UCXTpFs_3PqI41qX2d9tL2Rw", # 紫咲シオン
+    "UChAnqc_AY5_I3Px5dig3X1Q", # 戌神ころね
+    "UCp-5t9SrOQwXMU7iIjQfARg", # 大神ミオ
+    "UCvaTdHTWBGv3MKj3KVqJVCw", # 猫又おかゆ
+    "UC1DCedRgGHBdm81E1llLhOQ", # 兎田ぺこら
+    "UCCzUftO8KOVkV4wQG1vkUvg", # 宝鐘マリン
+    "UCdyqAaZDKHXg4Ahi7VENThQ", # 白銀ノエル
+    "UCvInZx9h3jC2JzsIzoOebWg", # 不知火フレア
+    "UCl_gCybOJRIgOXw6Qb4qJzQ", # 潤羽るしあ
+    "UC1uv2Oq6kNxgATlCiez59hw", # 常闇トワ
+    "UCa9Y57gfeY0Zro_noHRVrnw", # 姫森ルーナ
+    "UCqm3BQLlJfvkTsX_hvm0UmA", # 角巻わため
+    "UCZlDXzGoo7d44bwdNObFacg", # 天音かなた
+    "UCS9uQI-jC3DE0L4IpXyvr6w", # 桐生ココ
+    "UCAWSyEs_Io8MtpY3m-zqILA", # 桃鈴ねね
+    "UCFKOVgVbGmX65RxO3EtH3iw", # 雪花ラミィ
+    "UCK9V2B22uJYu3N7eR_BT9QA", # 尾丸ポルカ
+    "UCUKD-uaobj9jiqB-VXt71mA", # 獅白ぼたん
+    "UCgZuwn-O7Szh9cAgHqJ6vjw", # 魔乃アロエ
+    "UC6eWCld0KwmyHFbAqK3V-Rw", # 博衣こより
+    "UCENwRMx5Yh42zWpzURebzTw", # ラプラス・ダークネス
+    "UCIBY1ollUsauvVi4hW4cumw", # 沙花叉クロヱ
+    "UCs9_O1tRPMQTHQ-N_L6FU2g", # 鷹嶺ルイ
+    "UC_vMYWcDjmfdpH6r4TTn1MQ", # 風真いろは
+    "UCHsx4Hqa-1ORjQTh9TYDhww", # Takanashi Kiara
+    "UCL_qhgtOy0dy1Agp8vkySQg", # Mori Calliope
+    "UCMwGHR0BTZuLsmjY_NT5Pwg", # Ninomae Ina'nis
+    "UCoSrY_IQQVpmIRZ9Xf-y93g", # Gawr Gura
+    "UCyl1z3jo3XHR1riLFKG5UAg", # Watson Amelia
+    "UC8rcEBzJSleTkf_-agPM20g", # IRyS
+    "UC3n5uGu18FoCy23ggWWp8tA", # Nanashi Mumei
+    "UCgmPnx-EEeOrZSg5Tiw7ZRQ", # Hakos Baelz
+    "UCmbs8T6MWqUHP1tIQvSgKrg", # Ouro Kronii
+    "UCO_aKKYxn4tvrqPjcTzZ6EQ", # Ceres Fauna
+    "UCsUj0dszADCGbF3gNrQEuSQ", # Tsukumo Sana
+    "UC9p_lqQ0FEDz327Vgf5JwqA", # Koseki Bijou
+    "UCgnfPPb9JI3e9A4cXHnWbyg", # Shiori Novella
+    "UC_sFNM0z0MWm9A6WlKPuMMg", # Nerissa Ravencroft
+    "UCt9H_RpQzhxzlyBxFqrdHqA", # FUWAMOCO
+    "UCDHABijvPBnJm7F-KlNME3w", # Gigi Murin
+    "UCl69AEx4MdqMZH7Jtsm7Tig", # Raora Panthera
+    "UCvN5h1ShZtc7nly3pezRayg", # Cecilia Immergreen
+    "UCW5uhrG1eCBYditmhL0Ykjw", # Elizabeth Rose Bloodflame
+    "UCAoy6rzhSf4ydcYjJw3WoVg", # Airani Iofifteen
+    "UCOyYb1c43VlX9rc_lT6NKQw", # Ayunda Risu
+    "UCP0BspO_AMEe3aQqqpo89Dg", # Moona Hoshinova
+    "UC727SQYUvx5pDDGQpTICNWg", # Anya Melfissa
+    "UChgTyjG-pdNvxxhdsXfHQ5Q", # Pavolia Reine
+    "UCYz_5n-uDuChHtLo7My1HnQ", # Kureiji Ollie
+    "UCjLEmnpCNeisMxy134KPwWw", # Kobo Kanaeru
+    "UCTvHWSfBZgtxE4sILOaurIQ", # Vestia Zeta
+    "UCZLZ8Jjx_RN2CXloOmgTHVg", # Kaela Kovalskia
+    "UC1iA6_NT4mtAcIII6ygrvCw", # 轟はじめ
+    "UCdXAk5MpyLD8594lm_OvtGQ", # 儒烏風亭らでん
+    "UCMGfV7TVTmHhEErVJg1oHBQ", # 火威青
+    "UCtyWhCj3AqKh2dXctLkDtng", # 一条莉々華
+    "UCWQtYtq9EOB4-I5P-3fh8lA", # 音乃瀬奏
+    "UC9LSiN9hXI55svYEBrrK-tw", # 響咲リオナ
+    "UCGzTVXqMQHa4AgJVJIVvtDQ", # 綺々羅々ヴィヴィ
+    "UCjk2nKmHzgH5Xy-C5qYRd5A", # 水宮枢
+    "UCKMWFR6lAstLa7Vbf5dH7ig", # 輪堂千速
+    "UCuI_opAVX6qbxZY-a-AxFuQ", # 虎金妃笑虎
+
+    # 個人勢
+    "UCt30jJgChL8qeT9VPadidSw", # しぐれうい
+
+    # # にじさんじ
+    # "UCYKP16oMX9KKPbrNgo_Kgag", # える
+    # "UC6oDys1BGgBsIC3WhG1BovQ", # 静凛
+    # "UCeK9HFcRZoTrvqcUCtccMoQ", # 渋谷ハジメ
+    # "UCD-miitqNY3nyukJ4Fnf4_A", # 月ノ美兎
+    # "UCsg-YqdqQ-KFF0LNk23BY4A", # 樋口楓
+    # "UCvmppcdYf4HOv-tFQhHHJMA", # モイラ
+    # "UC_GCs6GARLxEHxy1w40d6VQ", # 家長むぎ
+    # "UCmUjjW5zF1MMOhYUwwwQv9Q", # 宇志海いちご
+    # "UCUzJ90o1EjqUbk2pBAy0_aw", # ギルザレンⅢ世
+    # "UCv1fFr156jc65EMiLbaLImw", # 剣持刀也
+    # "UCXU7YYxy_iQd3ulXyO-zC2w", # 伏見ガク
+    # "UCBiqkFJljoxAj10SoP2w2Cg", # 文野環
+    # "UCt0clH12Xk1-Ej5PXKGfdPA", # 物述有栖
+    # "UCtpB6Bvhs1Um93ziEDACQ8g", # 森中花咲
+    # "UC48jH1ul-6HOrcSSfoR02fQ", # 夕陽リリ
+    # "UCBi8YaVyZpiKWN3_Z0dCTfQ", # 赤羽葉子
+    # "UCspv01oxUFf_MTSipURRhkA", # 叶
+    # "UC3lNFeJiTq6L3UWoz4g1e-A", # 卯月コウ
+    # "UC1zFJrfEKvCixhsjNSb1toQ", # シスター・クレア
+    # "UCryOPk2GZ1meIDt53tL30Tw", # 鈴木勝
+    # "UC53UDnhAAYwvNO7j_2Ju1cQ", # ドーラ
+    # "UCRV9d6YCYIMUszK-83TwxVA", # 轟京子
+    # "UCsFn_ueskBkMCEyzCEqAOvg", # 花畑チャイカ
+    # "UCKMYISTJAQ8xTplUPHiABlA", # 社築
+    # "UCt5-0i4AVHXaWJrL8Wql3mw", # 緑仙
+    # "UCtAvQ5U0aXyKwm2i4GqFgJg", # 春崎エアル
+    # "UCoztvTULBYd3WmStqYeoHcA", # 笹木咲
+    # "UC0g1AE0DOjBYnLhkgoRWN1w", # 本間ひまわり
+    # "UCSFCh5NL4qXrAy9u-u2lX3g", # 葛葉
+    # "UC_4tXjqecqox5Uc05ncxpxg", # 椎名唯華
+    # "UC9EjSJ8pvxtvPdxLOElv73w", # 魔界ノりりむ
+    # "UCiSRx1a2k-0tOg-fs6gAolQ", # 飛鳥ひな
+    # "UCRWOdwLRsenx2jLaiCAIU4A", # 雨森小夜
+    # "UCWz0CSYCxf4MhRKPDm220AQ", # 神田笑一
+    # "UCV5ZZlLjk5MKGg3L0n0vbzw", # 鷹宮リオン
+    # "UCJubINhCcFXlsBwnHp0wl_g", # 舞元啓介
+    # "UCfQVs_KuXeNAlGa3fb8rlnQ", # 桜凛月
+    # "UChUJbHiTVeGrSkTdBzVfNCQ", # ジョー・力一
+    # "UCjlmCrq4TP1I4xguOtJ-31w", # でびでび・でびる
+    # "UCo7TRj3cS-f_1D9ZDmuTsjw", # 町田ちま
+    # "UCPvGypSgfDkVe7JG2KygK7A", # 竜胆尊
+    # "UCmeyo5pRj_6PXG-CsGUuWWg", # 黒井しば
+    # "UCbc8fwhdUNlqi-J99ISYu4A", # ベルモンド・バンデラス
+    # "UCvzVB-EYuHFXHZrObB8a_Og", # 矢車りね
+    # "UCTIE7LM5X15NVugV7Krp9Hw", # 夢追翔
+    # "UCCVwhI5trmaSxfcze_Ovzfw", # 夢月ロア
+    # "UCufQu4q65z63IgE4cfKs1BQ", # 語部紡
+    # "UCHVXbQzkl3rDfsXWo8xi2qw", # アンジュ・カトリーナ
+    # "UCXRlIK3Cw_TJIQC5kSJJQMg", # 戌亥とこ
+    # "UCZ1xuCK1kNmn5RzPYIZop3w", # リゼ・ヘルエスタ
+    # "UC0WwEfE-jOM2rzjpdfhTzZA", # 愛園愛美
+    # "UCNW1Ex0r6HsWRD4LCtPwvoQ", # 三枝明那
+    # "UC_a1ZYZ8ZTXpjg9xUY9sj8w", # 鈴原るる
+    # "UCHX7YpFG8rVwhsHCx34xt7w", # 雪城眞尋
+    # "UCIytNcoz4pWzXfLda0DoULQ", # エクス・アルビオ
+    # "UCtnO2N4kPTXmyvedjGWdx3Q", # レヴィ・エリファ
+    # "UCUc8GZfFxtmk7ZwSO7ccQ0g", # ニュイ・ソシエール
+    # "UCfipDDn7wY-C-SoUChgxCQQ", # 葉山舞鈴
+    # "UCmovZ2th3Sqpd00F5RdeigQ", # 加賀美ハヤト
+    # "UCGYAYLDE7TZiiC8U6teciDQ", # 葉加瀬冬雪
+    # "UCL34fAoFim9oHLbVzMKFavQ", # 夜見れな
+    # "UCdpUojq0KWZCN9bxXnZwz5w", # アルス・アルマル
+    # "UCkIimWZ9gBJRamKF0rmPU8w", # 天宮こころ
+    # "UCpNH2Zk2gw3JBjWAKSyZcQQ", # エリー・コニファー
+    # "UCIG9rDtgR45VCZmYnd-4DUw", # ラトナ・プティ
+    # "UCpJtk0myFr5WnyfsmnInP-w", # ハナ マキア
+    # "UCHBhnG2G-qN0JrrWmMO2FTA", # シェリン・バーガンディ
+    # "UC8C1LLhBhf_E2IBPLSDJXlQ", # 健屋花那
+    # "UC2OacIzd2UxGHRGhdHl1Rhw", # 早瀬走
+    # "UCwrjITPwG4q71HzihV2C7Nw", # フミ
+    # "UC9V3Y3_uzU5e-usObb6IE1w", # 星川サラ
+    # "UCllKI7VjyANuS1RXatizfLQ", # 山神カルタ
+    # "UCl1oLKcAq93p-pwKfDGhiYQ", # えま★おうがすと
+    # "UCerkculBD7YLc_vOGrF7tKg", # 魔使マオ
+    # "UCb6ObE-XGCctO3WrjRZC-cw", # ルイス・キャミー
+    # "UCuvk5PilcvDECU7dDZhQiEw", # 白雪巴
+    # "UC6wvdADTJ88OfIbJYIpAaDA", # 不破湊
 }
 
 
@@ -807,7 +890,7 @@ class youtube(MyCog):
                                 elif chat.author.channelId == "UCkr7uCq7BZO2perY5PqX3lw":
                                     func.time_print(f"olea留言 https://youtu.be/{video_id}")
 
-                                elif chat.author.isChatModerator or chat.author.channelId in hololive_channel_id:
+                                elif chat.author.isVerified or chat.author.isChatModerator or chat.author.channelId in channel_ids:
 
                                     func.time_print(f"成員留言 https://youtu.be/{video_id}")
                                     # title = get_video_data(video_id)[0]['snippet']['title']
