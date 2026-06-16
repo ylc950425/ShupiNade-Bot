@@ -38,9 +38,13 @@ class MessageLog:
     
 
 class SpamCheck:
-    def __init__(self, bot: MyBot):
+    @property
+    def penalty_channel(self):
+        return self.guild.get_channel(settings['id']['channel']['penalty'])
+
+    def __init__(self, guild: discord.Guild):
         self.message_log_list: list[MessageLog] = []
-        self.bot = bot
+        self.guild = guild
 
     async def check(self, message: discord.Message):
         # 創建紀錄類別
@@ -58,39 +62,44 @@ class SpamCheck:
 
         # 將新訊息加入紀錄清單
         self.message_log_list.insert(0, log_item)
-        if len(self.message_log_list) > 50:
+        if len(self.message_log_list) > 500:
             self.message_log_list.pop()
 
-        # 如果判定為洗頻訊息，刪除過去30秒所有來自此使用者的訊息
+        # 判定為洗頻訊息
         if repeat_count >= 3:
-            for log in self.message_log_list:
-                if log_item.timestamp - log.timestamp > 30:
-                    break
-                if log.author_id == log_item.author_id:
-                    try:
-                        msg = await self.bot.get_channel(log.channel_id).fetch_message(log.message_id)
-                        await msg.delete()
-                    except discord.NotFound:
-                        pass
-
             # 刪除基本身份組，發送懲處紀錄
-            author = self.bot.guild.get_member(log_item.author_id)
-            if author:
-                await author.remove_roles(self.bot.guild.get_role(settings['id']['role']['basic']))
-
+            if author := self.guild.get_member(log_item.author_id):
+                await author.remove_roles(self.guild.get_role(settings['id']['role']['basic']))
                 embed = discord.Embed(title="違規紀錄", description=author.mention, color=0xFF0000)
                 embed.add_field(name="使用者名稱", value=author.name)
                 embed.add_field(name="ID", value=author.id)
                 embed.add_field(name="違規事項", value="洗頻", inline=False)
                 embed.add_field(name="處置", value="刪除訊息、移除基本身份組")
-                embed.set_thumbnail(url=author.avatar.url)
-                await self.bot.guild.get_channel(settings['id']['channel']['penalty']).send(embed=embed)
+                embed.set_thumbnail(url=author.display_avatar.url)
+                await self.penalty_channel.send(embed=embed)
+
+            # 刪除過去30秒所有來自此使用者的訊息
+            to_remove: list[MessageLog] = []
+            for log in self.message_log_list:
+                if log_item.timestamp - log.timestamp > 30:
+                    break
+                if log.author_id == log_item.author_id:
+                    to_remove.append(log)
+                    try:
+                        msg = await self.guild.get_channel(log.channel_id).fetch_message(log.message_id)
+                        await msg.delete()
+                    except discord.NotFound:
+                        pass
+                    
+            # 從訊息紀錄清單中移除 bot 刪除的訊息
+            for log in to_remove:
+                self.message_log_list.remove(log)
     
 
 class message(MyCog):
     def __init__(self, bot):
         super().__init__(bot)
-        self.spamCheck = SpamCheck(bot)
+        self.spamCheck = SpamCheck(self.guild)
 
     async def dm(self, message: discord.Message):
         try:
