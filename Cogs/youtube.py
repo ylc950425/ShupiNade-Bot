@@ -4,16 +4,12 @@ from discord.ext import tasks
 from Define.Classes import MyBot, MyCog, MyView, MyModal
 from Define.CommandsGroup import YoutubeCommandsGroup
 import Define.Functions as func
-import requests
 import datetime as t
 import pytchat
 import asyncio
 import re
-# import filecmp
-# import shutil
 import os
 from typing import Literal
-import aiohttp
 import hashlib
 from dotenv import load_dotenv
 import os
@@ -629,32 +625,57 @@ class youtube(MyCog):
             await self.report_error(__file__, f"{self.__class__.__name__}.cog_unload", e)
 
 
-    def get_playlist_data(self):
-        url = f"https://www.googleapis.com/youtube/v3/playlistItems?part=snippet,contentDetails,status,id&maxResults=10&playlistId={PLAYLIST_ID}&key={YOUTUBE_API_KEY}"
-        data = requests.get(url).json()
+    async def get_playlist_data(self) -> list:
+        try:
+            url = "https://www.googleapis.com/youtube/v3/playlistItems"
+            params = {
+                "part": "snippet,contentDetails,status,id",
+                "maxResults": 10,
+                "playlistId": PLAYLIST_ID,
+                "key": YOUTUBE_API_KEY
+            }
 
-        if "error" in data:
-            return None
-        else:
-            return data['items']
+            async with self.bot.session.get(url, params=params) as resp:
+                data: dict = await resp.json()
+
+            return None if "error" in data else data['items']
         
-    def get_video_data(self, video_id: str) -> list:
-        url = f"https://www.googleapis.com/youtube/v3/videos?part=snippet,status,statistics,liveStreamingDetails,contentDetails&id={video_id}&key={YOUTUBE_API_KEY}"
-        data = requests.get(url).json()
+        except Exception as e:
+            await self.report_error(__file__, f"{self.__class__.__name__}.get_playlist_data", e)
+        
+    async def get_video_data(self, video_id: str) -> list:
+        try:
+            url = "https://www.googleapis.com/youtube/v3/videos"
+            params = {
+                "part": "snippet,status,statistics,liveStreamingDetails,contentDetails",
+                "id": video_id,
+                "key": YOUTUBE_API_KEY
+            }
 
-        if "items" in data:
-            return data['items']
-        else:
-            return []
+            async with self.bot.session.get(url, params=params) as resp:
+                data: dict = await resp.json()
 
-    def get_channel_data(self):
-        url = f"https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics,status,topicDetails,brandingSettings,contentDetails&id={CHANNEL_ID}&key={YOUTUBE_API_KEY}"
-        data = requests.get(url).json()
+            return data.get("items", [])
+        
+        except Exception as e:
+            await self.report_error(__file__, f"{self.__class__.__name__}.get_video_data", e)
 
-        if "error" in data:
-            return None
-        else:
-            return data['items']
+    async def get_channel_data(self) -> list:
+        try:
+            url = "https://www.googleapis.com/youtube/v3/channels"
+            params = {
+                "part": "snippet,statistics,status,topicDetails,brandingSettings,contentDetails",
+                "id": CHANNEL_ID,
+                "key": YOUTUBE_API_KEY
+            }
+
+            async with self.bot.session.get(url, params=params) as resp:
+                data: dict = await resp.json()
+
+            return None if "error" in data else data['items']
+            
+        except Exception as e:
+            await self.report_error(__file__, f"{self.__class__.__name__}.get_channel_data", e)
 
     # 檢查新影片的類型
     async def new_video_check(self, video_id: str) -> bool:
@@ -666,7 +687,7 @@ class youtube(MyCog):
                 return False
 
             # 用 YT api 獲取影片資料
-            video_data = self.get_video_data(video_id)[0]
+            video_data = (await self.get_video_data(video_id))[0]
 
             # 影片類型為普通影片
             if video_data['snippet']['liveBroadcastContent'] == "none" and "liveStreamingDetails" not in video_data:
@@ -716,11 +737,15 @@ class youtube(MyCog):
     async def download_thumbnail(self, video_data: dict):
         try:
             thumbnail_url = get_thumbnail_url(video_data)
-            request = requests.get(thumbnail_url, stream=True)
-            if request.status_code == 200:
-                with open(f"image/{video_data['id']}.jpg", 'wb') as file:
-                    for chunk in request.iter_content(1024):
+            
+            async with self.bot.session.get(thumbnail_url) as resp:
+                if resp.status != 200:
+                    return
+                
+                with open(f"image/{video_data['id']}.jpg", "wb") as file:
+                    async for chunk in resp.content.iter_chunked(1024):
                         file.write(chunk)
+
         except Exception as e:
             await self.report_error(__file__, f"{self.__class__.__name__}.get_thumbnail", e)
 
@@ -733,39 +758,18 @@ class youtube(MyCog):
     async def get_thumbnail_hash(self, video_data: dict):
         try:
             thumbnail_url = get_thumbnail_url(video_data)
-            async with aiohttp.ClientSession() as session:
-                async with session.get(thumbnail_url) as respone:
-                    if respone.status == 200:
-                        file_byte = await respone.read()
-                        return hashlib.sha256(file_byte).hexdigest()
-            return None
+            
+            async with self.bot.session.get(thumbnail_url) as resp:
+                if resp.status != 200:
+                    return None
+                file_byte = await resp.read()
+                return hashlib.sha256(file_byte).hexdigest()
+        
         except Exception as e:
             await self.report_error(__file__, f"{self.__class__.__name__}.get_thumbnail_hash", e)
 
-    async def get_temp_thumbnail(self, video_data: dict):
-        try:
-            thumbnail_url = get_thumbnail_url(video_data)
-            request = requests.get(thumbnail_url, stream=True)
-            if request.status_code == 200:
-                with open("image/temp.jpg", 'wb+') as file:
-                    for chunk in request.iter_content(1024):
-                        file.write(chunk)
-        except Exception as e:
-            await self.report_error(__file__, f"{self.__class__.__name__}.get_temp_thumbnail", e)
-
     async def compare_thumbnail(self, video_data: dict, old_hash: str):
         try:
-            # temp_file = "image/temp.jpg"
-            # old_file = f"image/{video_id}.jpg"
-
-            # await self.get_temp_thumbnail(video_data)
-
-            # if filecmp.cmp(temp_file, old_file):
-            #     return True
-            # else:
-            #     shutil.copyfile(temp_file, old_file)
-            #     return False
-
             new_hash = await self.get_thumbnail_hash(video_data)
 
             if old_hash == new_hash:
@@ -785,7 +789,7 @@ class youtube(MyCog):
 
                 id_string = ",".join(video['id'] for video in youtube_data['views_check'][list_num * 50 : list_num * 50 + 50])
 
-                video_data_list = self.get_video_data(id_string)
+                video_data_list = await self.get_video_data(id_string)
                 
                 for i, old_video_data in enumerate(youtube_data['views_check'][list_num * 50 : list_num * 50 + 50]):
 
@@ -810,7 +814,7 @@ class youtube(MyCog):
     async def channel_check(self):
         global youtube_data_dirty
         try:
-            channel_data = self.get_channel_data()[0]
+            channel_data = (await self.get_channel_data())[0]
 
             new_videoCount = int(channel_data['statistics']['videoCount'])
             old_videoCount = youtube_data['statistics']['videoCount']
@@ -946,7 +950,7 @@ class youtube(MyCog):
         global youtube_data_dirty
         try:
             # 獲取頻道的全體播放清單
-            playlist_data = self.get_playlist_data()
+            playlist_data = await self.get_playlist_data()
 
             for video in reversed(playlist_data):
                 await self.new_video_check(video['contentDetails']['videoId'])
@@ -958,7 +962,7 @@ class youtube(MyCog):
                 stream_id_string = ",".join(stream['id'] for stream in youtube_data['streams'])
 
                 # 取得所有待機台的資料並檢查
-                video_data_list = self.get_video_data(stream_id_string)
+                video_data_list = await self.get_video_data(stream_id_string)
                 for count, stream in enumerate(youtube_data['streams']):
                     video_id = stream['id']
                     # 獲取對應ID的api資料
@@ -1078,7 +1082,7 @@ class youtube(MyCog):
                         video_id = stream['id']
 
                         # 如果影片有成功抓取到影片資料
-                        if video_data := self.get_video_data(video_id)[0]:
+                        if video_data := (await self.get_video_data(video_id))[0]:
                             if video_data['snippet']['liveBroadcastContent'] == "live":
 
                                 await self.log.stream_start(video_data)

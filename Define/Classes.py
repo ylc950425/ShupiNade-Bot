@@ -3,6 +3,7 @@ from discord.ext import commands
 import Define.Functions as func
 import os
 from pathlib import Path
+import aiohttp
 
 
 settings = func.read_json("settings")
@@ -15,6 +16,7 @@ class MyBot(commands.Bot):
     
     def __init__(self):
         super().__init__(command_prefix="!", intents=discord.Intents.all())
+        self.session: aiohttp.ClientSession | None = None
     
     async def load_extensions(self):
         for filename in os.listdir("./Cogs"):
@@ -28,11 +30,19 @@ class MyBot(commands.Bot):
                 print(e)
     
     async def setup_hook(self):
+        # 初始化 session
+        self.session = aiohttp.ClientSession()
         # 載入所有Cog
         await self.load_extensions()
         # 載入斜線指令
         slash = await self.tree.sync()
         func.time_print(f"Load slash commands: {slash}")
+
+    async def close(self):
+        # 關閉 aiohttp.ClientSession
+        if self.session:
+            await self.session.close()
+        return await super().close()
         
 
 class MyCog(commands.Cog):

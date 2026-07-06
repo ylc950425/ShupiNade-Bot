@@ -6,7 +6,6 @@ from Define.CommandsGroup import SettingsCommandsGroup, MessageCommandsGroup, Fu
 import Define.Functions as func
 import emoji
 import asyncio
-import requests
 
 
 settings = func.read_json("settings")
@@ -206,21 +205,23 @@ class slash(MyCog):
             content += "="
 
             # 使用 google input tools api
-            response = requests.get(
-                "https://inputtools.google.com/request",
-                {
-                    "text": content,
-                    "itc": "zh-hant-t-i0-und"
-                }
-            )
+            url = "https://inputtools.google.com/request"
+            params = {
+                "text": content,
+                "itc": "zh-hant-t-i0-und"
+            }
 
-            data = response.json()
+            async with self.bot.session.get(url, params=params) as resp:
+                if resp.status == 200:
+                    data = await resp.json()
+                else:
+                    data = None
 
-            if data[0] == "SUCCESS":
+            if data and data[0] == "SUCCESS":
                 # 如果 list 為空值，印出零寬空格
                 await interaction.followup.send(next(iter(data[1][0][1]), "​"))
             else:
-                return await interaction.followup.send("轉換失敗", ephemeral=True)
+                await interaction.followup.send("轉換失敗", ephemeral=True)
 
         except Exception as e:
             await self.report_error(__file__, f"{self.__class__.__name__}.zhuyin", e)
