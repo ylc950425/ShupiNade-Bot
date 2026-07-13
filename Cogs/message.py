@@ -82,18 +82,18 @@ class SpamCheck:
         # 判定為洗頻訊息
         if message_spam or author_spam:
             if message_spam:
-                violations = "重複訊息洗頻"
+                violations = "- 重複訊息洗頻"
             elif author_spam:
-                violations = "大量訊息洗頻"
+                violations = "- 大量訊息洗頻"
             
             # 刪除基本身份組，發送懲處紀錄
             if author := self.guild.get_member(new_log.author_id):
                 await author.remove_roles(self.guild.get_role(settings['id']['role']['basic']))
                 embed = discord.Embed(title="違規紀錄", description=author.mention, color=0xFF0000)
-                embed.add_field(name="使用者名稱", value=author.name)
-                embed.add_field(name="ID", value=author.id)
+                embed.add_field(name="使用者名稱", value=f"`{author.name}`")
+                embed.add_field(name="ID", value=f"`{author.id}`")
                 embed.add_field(name="違規事項", value=violations, inline=False)
-                embed.add_field(name="處置", value="刪除訊息\n移除基本身份組")
+                embed.add_field(name="處置", value="- 刪除訊息\n- 移除基本身份組")
                 embed.set_thumbnail(url=author.display_avatar.url)
                 await self.penalty_channel.send(embed=embed)
 
