@@ -164,6 +164,8 @@ class message(MyCog):
                 if re.search(target, message.content):
                     for r in react['reaction']:
                         await message.add_reaction(r)
+                    for r in react['reply']:
+                        await message.reply(r)
                     for s in react['send']:
                         await message.channel.send(s)
 
