@@ -41,53 +41,74 @@ class SpamCheck:
     @property
     def penalty_channel(self):
         return self.guild.get_channel(settings['id']['channel']['penalty'])
+    
+    @property
+    def guild(self):
+        return self.bot.guild
 
-    def __init__(self, guild: discord.Guild):
+    def __init__(self, bot: MyBot):
         self.message_log_list: list[MessageLog] = []
-        self.guild = guild
+        self.bot = bot
 
     async def check(self, message: discord.Message):
-        # 創建紀錄類別
-        log_item = await MessageLog.create(message)
+        new_log = await MessageLog.create(message)
+
+        message_repeat_count = 0
+        author_repeat_count = 0
+        message_spam = False
+        author_spam = False
 
         # 檢查過去10秒是否有完全相同的訊息
-        repeat_count = 0
-        for log in self.message_log_list:
-            if log_item.timestamp - log.timestamp > 10:
+        for past_log in self.message_log_list:
+            if new_log.timestamp - past_log.timestamp > 10:
                 break
-            if (log.author_id == log_item.author_id) and (log.content == log_item.content) and (log.attachments_hash == log_item.attachments_hash):
-                repeat_count += 1
-                if repeat_count >= 3:
-                    break
+
+            if past_log.author_id == new_log.author_id:
+                author_repeat_count += 1
+
+                if (past_log.content == new_log.content) and (past_log.attachments_hash == new_log.attachments_hash):
+                    message_repeat_count += 1
+
+            if message_repeat_count >= 3:
+                message_spam = True
+                break
+            elif author_repeat_count >= 10:
+                author_spam = True
+                break
 
         # 將新訊息加入紀錄清單
-        self.message_log_list.insert(0, log_item)
+        self.message_log_list.insert(0, new_log)
         if len(self.message_log_list) > 500:
             self.message_log_list.pop()
 
         # 判定為洗頻訊息
-        if repeat_count >= 3:
+        if message_spam or author_spam:
+            if message_spam:
+                violations = "重複訊息洗頻"
+            elif author_spam:
+                violations = "大量訊息洗頻"
+            
             # 刪除基本身份組，發送懲處紀錄
-            if author := self.guild.get_member(log_item.author_id):
+            if author := self.guild.get_member(new_log.author_id):
                 await author.remove_roles(self.guild.get_role(settings['id']['role']['basic']))
                 embed = discord.Embed(title="違規紀錄", description=author.mention, color=0xFF0000)
                 embed.add_field(name="使用者名稱", value=author.name)
                 embed.add_field(name="ID", value=author.id)
-                embed.add_field(name="違規事項", value="洗頻", inline=False)
-                embed.add_field(name="處置", value="刪除訊息、移除基本身份組")
+                embed.add_field(name="違規事項", value=violations, inline=False)
+                embed.add_field(name="處置", value="刪除訊息\n移除基本身份組")
                 embed.set_thumbnail(url=author.display_avatar.url)
                 await self.penalty_channel.send(embed=embed)
 
-            # 刪除過去30秒所有來自此使用者的訊息
+            # 刪除過去10秒所有來自此使用者的訊息
             to_remove: list[MessageLog] = []
             for log in self.message_log_list:
-                if log_item.timestamp - log.timestamp > 30:
+                if new_log.timestamp - log.timestamp > 10:
                     break
-                if log.author_id == log_item.author_id:
+                if log.author_id == new_log.author_id:
                     to_remove.append(log)
                     try:
-                        msg = await self.guild.get_channel(log.channel_id).fetch_message(log.message_id)
-                        await msg.delete()
+                        target_message = await self.guild.get_channel(log.channel_id).fetch_message(log.message_id)
+                        await target_message.delete()
                     except discord.NotFound:
                         pass
                     
@@ -99,7 +120,7 @@ class SpamCheck:
 class message(MyCog):
     def __init__(self, bot):
         super().__init__(bot)
-        self.spamCheck = SpamCheck(self.guild)
+        self.spamCheck = SpamCheck(self.bot)
 
     async def dm(self, message: discord.Message):
         try:
