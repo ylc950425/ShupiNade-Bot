@@ -12,8 +12,6 @@ settings = func.read_json("settings")
 
 message_react: dict = settings['function']['message_react']
 
-spam_check = settings['function']['spam_check']
-
 dm_reply = settings['function']['dm_reply']
 
 first_person = settings['function']['first_person']
@@ -154,6 +152,9 @@ class message(MyCog):
             # 忽略任何bot發的訊息
             if message.author.bot:
                 return
+            
+            # 檢查洗頻
+            await self.spamCheck.check(message)
 
             # 對特定訊息做出反應
             for target, react in message_react.items():
@@ -165,10 +166,6 @@ class message(MyCog):
                         await message.add_reaction(r)
                     for s in react['send']:
                         await message.channel.send(s)
-
-            # 檢查洗頻
-            if spam_check['enable']:
-                await self.spamCheck.check(message)
 
             # 對話功能
             if message.channel.id == settings['id']['channel']['bot']['chat'] or message.channel.id == settings['id']['channel']['bot']['panel']:
