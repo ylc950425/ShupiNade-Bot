@@ -8,7 +8,7 @@ import random
 
 settings = func.read_json("settings")
 
-first_person = settings['function']['first_person']
+first_person = settings['functions']['first_person']
 
 guild = settings['guild']
 

@@ -10,8 +10,8 @@ settings = func.read_json("settings")
 rule_channel_id: int = settings['id']['channel']['rule']
 welcome_message: str = settings['welcome_message']
 
-member_counter_enable: bool = settings['function']['member_counter']['enable']
-member_counter_str: str = settings['function']['member_counter']['name']
+member_counter_enable: bool = settings['functions']['member_counter']['enable']
+member_counter_str: str = settings['functions']['member_counter']['name']
 
 
 class join(MyCog):

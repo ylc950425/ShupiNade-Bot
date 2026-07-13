@@ -10,11 +10,12 @@ import hashlib
 
 settings = func.read_json("settings")
 
-message_react: dict = settings['function']['message_react']
+message_react: dict = settings['functions']['message_react']
+sticker_react: dict = settings['functions']['sticker_react']
 
-dm_reply = settings['function']['dm_reply']
+dm_reply = settings['functions']['dm_reply']
 
-first_person = settings['function']['first_person']
+first_person = settings['functions']['first_person']
 
 
 class MessageLog:
@@ -162,6 +163,16 @@ class message(MyCog):
                 target = target.format(mention_self=f"<@{self.bot.user.id}>")
 
                 if re.search(target, message.content):
+                    for r in react['reaction']:
+                        await message.add_reaction(r)
+                    for r in react['reply']:
+                        await message.reply(r)
+                    for s in react['send']:
+                        await message.channel.send(s)
+
+            # 對特定貼圖做出反應
+            for target, react in sticker_react.items():
+                if any(int(target) == sticker.id for sticker in message.stickers):
                     for r in react['reaction']:
                         await message.add_reaction(r)
                     for r in react['reply']:
