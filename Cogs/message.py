@@ -26,31 +26,38 @@ class MessageLog:
         self.message_id = message.id
         self.attachments_hash = attachments_hash
         self.timestamp = message.created_at.timestamp()
-                
-    @classmethod
-    async def create(cls, message: discord.Message):
-        attachments_hash = []
-        if message.attachments:
-            for attachment in message.attachments:
-                attachments_hash.append(hashlib.sha256(await attachment.read()).hexdigest())
-        return cls(message, attachments_hash)
     
-
-class SpamCheck:
-    @property
-    def penalty_channel(self):
-        return self.guild.get_channel(settings['id']['channel']['penalty'])
-    
-    @property
-    def guild(self):
-        return self.bot.guild
-
+class MessageLogList:
     def __init__(self, bot: MyBot):
-        self.message_log_list: list[MessageLog] = []
         self.bot = bot
+        self.log_list: list[MessageLog] = []
+        self.penalty = Penalty(bot)
 
-    async def check(self, message: discord.Message):
-        new_log = await MessageLog.create(message)
+    async def add_log(self, message: discord.Message):
+        """將新訊息加入到紀錄清單"""
+        # 計算附件檔案的 hash
+        attachments_hash = [
+            hashlib.sha256(await attachment.read()).hexdigest()
+            for attachment in message.attachments
+        ]
+        # 訊息紀錄物件
+        new_log = MessageLog(message, attachments_hash)
+        # 加入清單
+        self.log_list.insert(0, new_log)
+        if len(self.log_list) > 500:
+            self.log_list.pop()
+
+        return new_log
+    
+    def delete_log(self, log: MessageLog):
+        """從紀錄清單中刪除指定的紀錄"""
+        self.log_list.remove(log)
+
+    async def spam_check(self):
+        """檢查最新的訊息是否為洗頻訊息"""
+
+        if len(self.log_list) < 4:
+            return
 
         message_repeat_count = 0
         author_repeat_count = 0
@@ -58,7 +65,9 @@ class SpamCheck:
         author_spam = False
 
         # 檢查過去10秒是否有完全相同的訊息
-        for past_log in self.message_log_list:
+        new_log = self.log_list[0]
+
+        for past_log in self.log_list[1:]:
             if new_log.timestamp - past_log.timestamp > 10:
                 break
 
@@ -75,51 +84,68 @@ class SpamCheck:
                 author_spam = True
                 break
 
-        # 將新訊息加入紀錄清單
-        self.message_log_list.insert(0, new_log)
-        if len(self.message_log_list) > 500:
-            self.message_log_list.pop()
-
-        # 判定為洗頻訊息
+        #刪除判定為洗頻的訊息
         if message_spam or author_spam:
             if message_spam:
-                violations = "- 重複訊息洗頻"
+                violations = ["重複訊息洗頻"]
             elif author_spam:
-                violations = "- 大量訊息洗頻"
+                violations = ["大量訊息洗頻"]
             
-            # 刪除基本身份組，發送懲處紀錄
-            if author := self.guild.get_member(new_log.author_id):
-                await author.remove_roles(self.guild.get_role(settings['id']['role']['basic']))
-                embed = discord.Embed(title="違規紀錄", description=author.mention, color=0xFF0000)
-                embed.add_field(name="使用者名稱", value=f"`{author.name}`")
-                embed.add_field(name="ID", value=f"`{author.id}`")
-                embed.add_field(name="違規事項", value=violations, inline=False)
-                embed.add_field(name="處置", value="- 刪除訊息\n- 移除基本身份組")
-                embed.set_thumbnail(url=author.display_avatar.url)
-                await self.penalty_channel.send(embed=embed)
-
-            # 刪除過去10秒所有來自此使用者的訊息
             to_remove: list[MessageLog] = []
-            for log in self.message_log_list:
+
+            for log in self.log_list:
                 if new_log.timestamp - log.timestamp > 10:
                     break
                 if log.author_id == new_log.author_id:
                     to_remove.append(log)
-                    try:
-                        target_message = await self.guild.get_channel(log.channel_id).fetch_message(log.message_id)
-                        await target_message.delete()
-                    except discord.NotFound:
-                        pass
-                    
-            # 從訊息紀錄清單中移除 bot 刪除的訊息
-            for log in to_remove:
-                self.message_log_list.remove(log)
+
+            for target in to_remove:
+                # 從紀錄清單移除
+                self.delete_log(target)
+                # 刪除訊息
+                try:
+                    target_message = await self.bot.guild.get_channel(target.channel_id).fetch_message(target.message_id)
+                    await target_message.delete()
+                except discord.NotFound:
+                    pass
+
+            # 移除基本身份組
+            await self.penalty.remove_basic_role(new_log.author_id, violations, ["刪除訊息", "移除基本身份組"])
+
+
+class Penalty:
+    def __init__(self, bot: MyBot):
+        self.bot = bot
+
+    @property
+    def penalty_channel(self):
+        return self.bot.guild.get_channel(settings['id']['channel']['penalty'])
     
+    async def remove_basic_role(self, member_id: int, violations: list[str], penalties: list[str]):
+        """移除基礎身份組"""
+        # 移除身份組
+        member = self.bot.guild.get_member(member_id)
+        await member.remove_roles(self.bot.guild.get_role(settings['id']['role']['basic']))
+        # 發送紀錄
+        await self._send_log(member, violations, penalties)
+    
+    async def _send_log(self, member: discord.Member, violations: list[str], penalties: list[str]):
+        """發送懲處紀錄"""
+        violations_str = "\n".join(f"- {v}" for v in violations)
+        penalty_str = "\n".join(f"- {p}" for p in penalties)
+        embed = discord.Embed(title="懲處紀錄", description=member.mention, color=0xFF0000)
+        embed.add_field(name="使用者名稱", value=f"`{member.name}`")
+        embed.add_field(name="ID", value=f"`{member.id}`")
+        embed.add_field(name="違規事項", value=violations_str, inline=False)
+        embed.add_field(name="處置", value=penalty_str)
+        embed.set_thumbnail(url=member.display_avatar.url)
+        await self.penalty_channel.send(embed=embed)
+
 
 class message(MyCog):
     def __init__(self, bot):
         super().__init__(bot)
-        self.spamCheck = SpamCheck(self.bot)
+        self.message_log_list = MessageLogList(bot)
 
     async def dm(self, message: discord.Message):
         try:
@@ -154,8 +180,10 @@ class message(MyCog):
             if message.author.bot:
                 return
             
-            # 檢查洗頻
-            await self.spamCheck.check(message)
+            # 將訊息加入紀錄清單
+            new_log = await self.message_log_list.add_log(message)
+            # 檢查是否為洗頻訊息
+            await self.message_log_list.spam_check()
 
             # 對特定訊息做出反應
             for target, react in message_react.items():
