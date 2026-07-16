@@ -56,45 +56,58 @@ class MessageLogList:
     async def spam_check(self):
         """檢查最新的訊息是否為洗頻訊息"""
 
-        if len(self.log_list) < 4:
+        if len(self.log_list) < 1:
             return
-
-        message_repeat_count = 0
-        author_repeat_count = 0
+        
         message_spam = False
         author_spam = False
-
-        # 檢查過去10秒是否有完全相同的訊息
+        trapped = False
+        
         new_log = self.log_list[0]
 
-        for past_log in self.log_list[1:]:
-            if new_log.timestamp - past_log.timestamp > 10:
-                break
+        if new_log.channel_id == settings['id']['channel']['trap']:
+            trapped = True
+        else:
+            message_repeat_count = 0
+            author_repeat_count = 0
 
-            if past_log.author_id == new_log.author_id:
-                author_repeat_count += 1
+            # 檢查過去10秒是否有完全相同的訊息
+            for past_log in self.log_list[1:]:
+                if new_log.timestamp - past_log.timestamp > 10:
+                    break
 
-                if (past_log.content == new_log.content) and (past_log.attachments_hash == new_log.attachments_hash):
-                    message_repeat_count += 1
+                if past_log.author_id == new_log.author_id:
+                    author_repeat_count += 1
 
-            if message_repeat_count >= 3:
-                message_spam = True
-                break
-            elif author_repeat_count >= 10:
-                author_spam = True
-                break
+                    if (past_log.content == new_log.content) and (past_log.attachments_hash == new_log.attachments_hash):
+                        message_repeat_count += 1
+
+                if message_repeat_count >= 3:
+                    message_spam = True
+                    break
+                elif author_repeat_count >= 10:
+                    author_spam = True
+                    break
 
         #刪除判定為洗頻的訊息
-        if message_spam or author_spam:
-            if message_spam:
+        if message_spam or author_spam or trapped:
+            if trapped:
+                violations = ["觸發陷阱"]
+                delete_sec = 5
+            elif message_spam:
                 violations = ["重複訊息洗頻"]
+                delete_sec = 10
             elif author_spam:
                 violations = ["大量訊息洗頻"]
+                delete_sec = 10
+
+            # 移除基本身份組
+            await self.penalty.remove_basic_role(new_log.author_id, violations, ["刪除訊息", "移除基本身份組"])
             
             to_remove: list[MessageLog] = []
 
             for log in self.log_list:
-                if new_log.timestamp - log.timestamp > 10:
+                if new_log.timestamp - log.timestamp > delete_sec:
                     break
                 if log.author_id == new_log.author_id:
                     to_remove.append(log)
@@ -109,9 +122,6 @@ class MessageLogList:
                 except discord.NotFound:
                     pass
 
-            # 移除基本身份組
-            await self.penalty.remove_basic_role(new_log.author_id, violations, ["刪除訊息", "移除基本身份組"])
-
 
 class Penalty:
     def __init__(self, bot: MyBot):
@@ -121,13 +131,21 @@ class Penalty:
     def penalty_channel(self):
         return self.bot.guild.get_channel(settings['id']['channel']['penalty'])
     
+    @property
+    def trap_channel(self):
+        return self.bot.get_channel(settings['id']['channel']['trap'])
+    
     async def remove_basic_role(self, member_id: int, violations: list[str], penalties: list[str]):
         """移除基礎身份組"""
-        # 移除身份組
-        member = self.bot.guild.get_member(member_id)
-        await member.remove_roles(self.bot.guild.get_role(settings['id']['role']['basic']))
-        # 發送紀錄
-        await self._send_log(member, violations, penalties)
+        if member := self.bot.guild.get_member(member_id):
+            basic_role = self.bot.guild.get_role(settings['id']['role']['basic'])
+            # 成員是有基本身份組的狀態才做懲處並發送紀錄
+            if basic_role in member.roles:
+                await member.remove_roles(basic_role)
+                if "觸發陷阱" in violations:
+                    await self.trap_channel.send(f"<@{member_id}> 觸發了陷阱💥")
+                else:
+                    await self._send_log(member, violations, penalties)
     
     async def _send_log(self, member: discord.Member, violations: list[str], penalties: list[str]):
         """發送懲處紀錄"""
@@ -180,9 +198,8 @@ class message(MyCog):
             if message.author.bot:
                 return
             
-            # 將訊息加入紀錄清單
-            new_log = await self.message_log_list.add_log(message)
-            # 檢查是否為洗頻訊息
+            # 將訊息加入紀錄清單，檢查是否為洗頻訊息
+            await self.message_log_list.add_log(message)
             await self.message_log_list.spam_check()
 
             # 對特定訊息做出反應
